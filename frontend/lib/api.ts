@@ -1,6 +1,11 @@
-import { Task, User, AuthResponse } from '@/lib/types';
+// frontend/lib/api.ts
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
+import { Task, AuthResponse } from '@/lib/types';
+
+// Backend URL points directly to your Hugging Face deployed backend
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  'https://tabiqchohan-hackathon2-phase2.hf.space/api/v1';
 
 class ApiClient {
   private baseUrl: string;
@@ -9,13 +14,13 @@ class ApiClient {
     this.baseUrl = API_BASE_URL;
   }
 
-  // Authentication methods
+  // --------------------------
+  // Authentication
+  // --------------------------
   async register(email: string, password: string, name?: string): Promise<AuthResponse> {
     const response = await fetch(`${this.baseUrl}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password, name }),
     });
 
@@ -30,9 +35,7 @@ class ApiClient {
   async login(email: string, password: string): Promise<AuthResponse> {
     const response = await fetch(`${this.baseUrl}/auth/login`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
 
@@ -54,20 +57,16 @@ class ApiClient {
     });
   }
 
-  // Task methods
+  // --------------------------
+  // Todo Tasks
+  // --------------------------
   async getTasks(token: string): Promise<Task[]> {
     const response = await fetch(`${this.baseUrl}/todos`, {
       method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
       const errorData = await response.json().catch(() => ({ message: 'Failed to fetch tasks' }));
       throw new Error(errorData.message || 'Failed to fetch tasks');
     }
@@ -86,9 +85,6 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
       const errorData = await response.json().catch(() => ({ message: 'Failed to create task' }));
       throw new Error(errorData.message || 'Failed to create task');
     }
@@ -98,7 +94,7 @@ class ApiClient {
 
   async updateTask(token: string, taskId: string, updates: Partial<Task>): Promise<Task> {
     const response = await fetch(`${this.baseUrl}/todos/${taskId}`, {
-      method: 'PUT',
+      method: 'PATCH', // partial updates
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
@@ -107,9 +103,6 @@ class ApiClient {
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
       const errorData = await response.json().catch(() => ({ message: 'Failed to update task' }));
       throw new Error(errorData.message || 'Failed to update task');
     }
@@ -120,16 +113,10 @@ class ApiClient {
   async deleteTask(token: string, taskId: string): Promise<void> {
     const response = await fetch(`${this.baseUrl}/todos/${taskId}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': `Bearer ${token}` },
     });
 
     if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
       const errorData = await response.json().catch(() => ({ message: 'Failed to delete task' }));
       throw new Error(errorData.message || 'Failed to delete task');
     }
