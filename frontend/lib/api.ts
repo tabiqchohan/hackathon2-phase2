@@ -74,7 +74,7 @@ class ApiClient {
   // --------------------------
 
   async getTasks(token: string): Promise<Task[]> {
-    const response = await fetch(`${this.baseUrl}/todos`, {
+    const response = await fetch(`${this.baseUrl}/todos/`, {
       method: 'GET',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -90,7 +90,7 @@ class ApiClient {
   }
 
   async createTask(token: string, title: string, description?: string): Promise<Task> {
-    const response = await fetch(`${this.baseUrl}/todos`, {
+    const response = await fetch(`${this.baseUrl}/todos/`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
