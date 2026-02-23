@@ -17,7 +17,7 @@ export interface Task {
   completedAt?: string;
 }
 
-export interface AuthResponse {
-  user: User;
-  token: string;
+export interface LoginResponse {
+  access_token: string;
+  token_type: string;
 }

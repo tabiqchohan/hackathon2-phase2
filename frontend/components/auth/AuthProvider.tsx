@@ -22,22 +22,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
+  // 🔹 Restore user on refresh
   useEffect(() => {
-    // Check for existing token in localStorage
     const storedToken = localStorage.getItem('auth-token');
+
     if (storedToken) {
       setToken(storedToken);
-      // Normally we'd fetch user data with the token here
+
+      fetch('/api/v1/auth/me', {
+        headers: {
+          Authorization: `Bearer ${storedToken}`,
+        },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error('Invalid token');
+          return res.json();
+        })
+        .then((data) => {
+          setUser(data);
+        })
+        .catch(() => {
+          localStorage.removeItem('auth-token');
+          setUser(null);
+          setToken(null);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
-    setLoading(false);
   }, []);
 
+  // 🔹 Login
   const login = async (email: string, password: string) => {
     try {
-      const { user: userData, token: authToken } = await apiClient.login(email, password);
+      const response = await apiClient.login(email, password);
+      const authToken = response.access_token;
+
       localStorage.setItem('auth-token', authToken);
-      setUser(userData);
       setToken(authToken);
+
+      // fetch current user
+      const userRes = await fetch('/api/v1/auth/me', {
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      if (!userRes.ok) throw new Error('Failed to fetch user');
+
+      const userData = await userRes.json();
+      setUser(userData);
+
       router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
@@ -45,28 +82,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // 🔹 Register (then auto login)
   const register = async (email: string, password: string, name?: string) => {
     try {
-      const { user: userData, token: authToken } = await apiClient.register(email, password, name);
-      localStorage.setItem('auth-token', authToken);
-      setUser(userData);
-      setToken(authToken);
-      router.push('/dashboard');
+      await apiClient.register(email, password, name);
+      await login(email, password);
     } catch (error) {
       console.error('Registration error:', error);
       throw error;
     }
   };
 
+  // 🔹 Logout
   const logout = async () => {
-    if (token) {
-      try {
-        await apiClient.logout(token);
-      } catch (error) {
-        console.error('Logout error:', error);
-        // Even if logout fails on the server, we should still clear local data
-      }
-    }
     localStorage.removeItem('auth-token');
     setUser(null);
     setToken(null);
