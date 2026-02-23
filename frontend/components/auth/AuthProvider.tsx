@@ -23,36 +23,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // 🔹 Restore user on refresh
-  useEffect(() => {
-    const storedToken = localStorage.getItem('auth-token');
+ useEffect(() => {
+  const storedToken = localStorage.getItem('auth-token');
 
-    if (storedToken) {
-      setToken(storedToken);
+  if (storedToken) {
+    setToken(storedToken);
 
-      fetch('/api/v1/auth/me', {
-        headers: {
-          Authorization: `Bearer ${storedToken}`,
-        },
+    apiClient
+      .getCurrentUser(storedToken)
+      .then((data) => {
+        setUser(data);
       })
-        .then((res) => {
-          if (!res.ok) throw new Error('Invalid token');
-          return res.json();
-        })
-        .then((data) => {
-          setUser(data);
-        })
-        .catch(() => {
-          localStorage.removeItem('auth-token');
-          setUser(null);
-          setToken(null);
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, []);
+      .catch(() => {
+        localStorage.removeItem('auth-token');
+        setUser(null);
+        setToken(null);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  } else {
+    setLoading(false);
+  }
+}, []);
 
   // 🔹 Login
   const login = async (email: string, password: string) => {
