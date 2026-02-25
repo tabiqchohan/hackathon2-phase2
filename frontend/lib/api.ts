@@ -74,20 +74,21 @@ class ApiClient {
   // --------------------------
 
   async getTasks(token: string): Promise<Task[]> {
-    const response = await fetch(`${this.baseUrl}/todos/`, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+  const response = await fetch(`${this.baseUrl}/todos/`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: 'Failed to fetch tasks' }));
-      throw new Error(errorData.message || 'Failed to fetch tasks');
-    }
-
-    return response.json();
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ message: 'Failed to fetch tasks' }));
+    throw new Error(errorData.message || 'Failed to fetch tasks');
   }
+
+  const data = await response.json();
+  return data.items; // <-- yaha "items" nikal ke return kar rahe hain
+}
 
   async createTask(token: string, title: string, description?: string): Promise<Task> {
     const response = await fetch(`${this.baseUrl}/todos/`, {
